@@ -1,5 +1,6 @@
 from transformers import AutoTokenizer
 import numpy as np
+from typing import Any
 
 class PromptBuilder():
     def __init__(self, tokenizer_r_name: str):
@@ -25,27 +26,21 @@ If the answer cannot be deduced from the context, do not give an answer."""
     },
 ]
 
-    def retrieve(self, query:str,
-                 indices: np.ndarray,
-                 chunks: list[dict]):
+        
+    def build_prompt(self, query:str, chunks: list[dict[str, Any]]):
 
         documents = []
         
-        for doc_id, i in enumerate(indices):
+        for doc_id, chunk in enumerate(chunks):
 
             documents.append(
                 f"""Document + {doc_id + 1}
-        Source: {chunks[i]['url']}
+        Source: {chunk['url']}
                 
-        {chunks[i]['text']}"""
+        {chunk['text']}"""
             )
 
         context = "\n\n---------------------\n\n".join(documents)
-        
-        return context
-
-        
-    def build_prompt(self, query:str, context:str):
         
         rag_prompt_template = self.tokenizer_r.apply_chat_template(self.prompt_template, tokenize=False, add_generation_prompt=True)
         

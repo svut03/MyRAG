@@ -1,4 +1,4 @@
-from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
+from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM, GenerationConfig
 
 
 class Generator():
@@ -13,12 +13,22 @@ class Generator():
         task='text-generation',
     )
     
-    def generate(self, prompt):
-    
-        answer = self.pipeline(prompt,
-                    max_new_tokens = 128,
-                    temperature = 0.2,
-                    do_sample = True,
-                    return_full_text=False)
+    def generate(
+            self, 
+            prompt: str,
+            max_new_tokens = 128,
+            temperature = 0.2):
+        
+        self.geration_config = GenerationConfig(
+            max_new_tokens,
+            temperature,
+            do_sample = True
+        )
+
+        answer = self.pipeline(
+            prompt,
+            geration_config = self.geration_config,
+            return_full_text=False,
+            clean_up_tokenization_spaces=False)
 
         return answer[0]['generated_text']

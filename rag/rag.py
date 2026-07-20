@@ -10,11 +10,10 @@ class RAG():
                  embedder_name: str,
                  tokenizer_r_name: str,
                  reader_name: str,
-                 cross_encoder_name: str,
+                 reranker: str = None,
                  chunk_size: int = 200,
                  overlap: int = 20,
                  topk: int = 3,
-                 reranking: bool = True
                 ):
         
         self.chunker = Chunker(tokenizer_name=tokenizer_name,
@@ -24,37 +23,29 @@ class RAG():
         self.prompt_builder = PromptBuilder(tokenizer_r_name=tokenizer_r_name)
         self.generator = Generator(tokenizer_r_name=tokenizer_r_name,
                                    reader_name=reader_name)
-        self.reranker = CrossEncoderReranker(cross_encoder_name, topk)
-        self.reranking = reranking
+        
+        self.reranker = reranker
+        
+        if self.reranker is not None:
+            self.reranker = CrossEncoderReranker(reranker, topk)
 
-    def ask(self, question, dataset):
+    def ask(self, question):
 
-        chunks = self.chunker.chunk(dataset)
+        retrieved_chunks = self.retriever.retrieve(question)
 
-        self.retriever.build_index(chunks)
-
-        _, indices = self.retriever.search(question)
-
-        if self.reranking:
+        if self.reranker is not None:
             
-            retrieved_chunks = self.retriever.retrieve_chunks(question)
+            reranked = self.reranker(question, retrieved_chunks)
 
-            scores, indices = self.reranker.rerank(question, retrieved_chunks)
-
-            context = self.prompt_builder.retrieve(question, indices)
+            prompt = self.prompt_builder.build_prompt(question, reranked)
 
         else:
             
-            _, indices = self.retriever.search(question)
-            
-            context = self.prompt_builder.retrieve(question, indices)
-
-        prompt = self.prompt_builder.build(
-            question,
-            context,
-            chunks
-            )
+            prompt = self.prompt_builder.build_prompt(question, retrieved_chunks)
 
         answer = self.generator.generate(prompt)
 
         return answer
+    
+    def load(self):
+        self.retriever.load()

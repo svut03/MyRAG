@@ -1,5 +1,6 @@
 import numpy as np
 from sentence_transformers import CrossEncoder
+from typing import Any
 
 class CrossEncoderReranker():
     def __init__(
@@ -11,14 +12,19 @@ class CrossEncoderReranker():
         self.topk = topk
 
         
-    def rerank(self, question : str, retrieved_chunks: list[str, np.ndarray]):
+    def __call__(self, question : str, retrieved_chunks: list[dict[str, Any]]):
         
-        question_chunks = [(question, chunk[0]) for chunk in retrieved_chunks]
+        question_chunks = [(question, chunk['text']) for chunk in retrieved_chunks]
         
         scores = self.model.predict(question_chunks)
 
-        indices = [ids[1] for ids in retrieved_chunks]
+        reranked = []
 
-        reranked = sorted(zip(scores, indices), reverse=True)[:self.topk]
+        for chunk, score in zip(retrieved_chunks, scores):
+            chunk = chunk.copy()
+            chunk['score'] = float(score)
+            reranked.append(chunk)
+
+        reranked = sorted(reranked, key=lambda chunk: chunk['score'], reverse=True)
         
-        return reranked
+        return reranked[:self.topk]
