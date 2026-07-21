@@ -1,34 +1,30 @@
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM, GenerationConfig
 
 
-class Generator():
-    def __init__(self,
-                 tokenizer_r_name: str,
-                 reader_name: str):
+class Generator:
+    def __init__(self, tokenizer_r_name: str, reader_name: str):
         self.tokenizer_r = AutoTokenizer.from_pretrained(tokenizer_r_name)
         self.reader = AutoModelForCausalLM.from_pretrained(reader_name)
         self.pipeline = pipeline(
-        model=self.reader,
-        tokenizer=self.tokenizer_r,
-        task='text-generation',
-    )
-    
+            model=self.reader,
+            tokenizer=self.tokenizer_r,
+            task="text-generation",
+        )
+
     def generate(
-            self, 
-            prompt: str,
-            max_new_tokens = 128,
-            temperature = 0.2):
-        
-        self.geration_config = GenerationConfig(
-            max_new_tokens,
-            temperature,
-            do_sample = True
+        self,
+        prompt: str,
+    ):
+
+        self.generation_config = GenerationConfig(
+            max_new_tokens=128, temperature=0.2, do_sample=True
         )
 
         answer = self.pipeline(
             prompt,
-            geration_config = self.geration_config,
+            generation_config=self.generation_config,
             return_full_text=False,
-            clean_up_tokenization_spaces=False)
+            clean_up_tokenization_spaces=False,
+        )
 
-        return answer[0]['generated_text']
+        return answer[0]["generated_text"]

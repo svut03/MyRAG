@@ -1,12 +1,12 @@
-from rag.retriever import Retriever
 from rag import RAG
 
 rag = RAG(
-    tokenizer_name='sentence-transformers/all-MiniLM-L6-v2',
-    embedder_name='sentence-transformers/all-MiniLM-L6-v2',
-    tokenizer_r_name='Qwen/Qwen2.5-1.5B-Instruct',
-    reader_name='Qwen/Qwen2.5-1.5B-Instruct',
-    reranker='cross-encoder/ms-marco-MiniLM-L12-v2')
+    tokenizer_name="sentence-transformers/all-MiniLM-L6-v2",
+    embedder_name="sentence-transformers/all-MiniLM-L6-v2",
+    tokenizer_r_name="Qwen/Qwen2.5-1.5B-Instruct",
+    reader_name="Qwen/Qwen2.5-1.5B-Instruct",
+    reranker="cross-encoder/ms-marco-MiniLM-L12-v2",
+)
 
 rag.load()
 
@@ -16,17 +16,17 @@ while True:
     if question.lower() in {"exit", "quit"}:
         break
 
-    if question.lower() == ':chunks':
+    if question.lower() == ":chunks":
         print(rag.retriever.chunks)
         continue
 
-    if question.startswith(':topn '):
-        query = question[len(':topn ')]
+    if question.startswith(":topn "):
+        query = question[len(":topn ") :]
         print(rag.retriever.retrieve(query))
         continue
 
-    if question.lower() == ':topk':
-        query = question[len(':topk ')]
+    if question.lower() == ":topk":
+        query = question[len(":topk ") :]
         print(rag.reranker(question, rag.retriever.retrieve(query)))
         continue
 
