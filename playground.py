@@ -1,20 +1,12 @@
-from rag.chunker import Chunker
-from rag.retriever import Retriever
-from datasets import load_dataset
+from transformers import AutoTokenizer, AutoModel
 
-ds = load_dataset("m-ric/huggingface_doc", split="train[:10%]")
+transformer = AutoModel.from_pretrained("google-bert/bert-base-uncased")
+tokenizer = AutoTokenizer.from_pretrained("google-bert/bert-base-uncased")
+topk = 3
 
-chunker = Chunker(
-    tokenizer_name='sentence-transformers/all-MiniLM-L6-v2',
-    chunk_size=200,
-    overlap=20
-                  )
 
-retriever = Retriever(
-    embedder_name='sentence-transformers/all-MiniLM-L6-v2')
+text = "Replace me by any text you'd like."
+encoded_input = tokenizer(text, return_tensors="pt")
+output = transformer(**encoded_input)
 
-chunks = chunker.chunk(ds)
-
-print(ds[0]["text"][:300])
-
-print(len(chunker.tokenizer.encode(ds[0]["text"])))
+print(output)
